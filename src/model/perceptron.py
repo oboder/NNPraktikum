@@ -56,9 +56,26 @@ class Perceptron(Classifier):
         verbose : boolean
             Print logging messages with validation accuracy if verbose is True.
         """
-        
-        # Write your code to train the perceptron here
-        pass
+
+        # Train by updating weights per epoch
+        for epoch in range(self.epochs):
+            error_sum = 0
+            # Iterate over training set
+            for input, label in zip(self.trainingSet.input,
+                                    self.trainingSet.label):
+                pred = self.fire(input)
+                # Update weights for missclassifications
+                if pred != label:
+                    error = label-pred
+                    self.updateWeights(input, error)
+                    error_sum += error
+
+            if verbose:
+                print "Epoch: {:02d}, Error: {:d}".format(epoch+1, -error_sum)
+
+            # Stop training early if classifier predicts correctly
+            if error_sum == 0:
+                break
 
     def classify(self, testInstance):
         """Classify a single instance.
@@ -72,8 +89,8 @@ class Perceptron(Classifier):
         bool :
             True if the testInstance is recognized as a 7, False otherwise.
         """
-        # Write your code to do the classification on an input image
-        pass
+        # Fire perceptron with instance to classify
+        return self.fire(testInstance)
 
     def evaluate(self, test=None):
         """Evaluate a whole dataset.
@@ -95,9 +112,10 @@ class Perceptron(Classifier):
         return list(map(self.classify, test))
 
     def updateWeights(self, input, error):
-        # Write your code to update the weights of the perceptron here
-        pass
-         
+        # input and error are vectors of size #features==len(input)
+        # w_i+1 = w_i+LR*Error*x
+        self.weight += self.learningRate*error*input
+
     def fire(self, input):
         """Fire the output of the perceptron corresponding to the input """
         return Activation.sign(np.dot(np.array(input), self.weight))
