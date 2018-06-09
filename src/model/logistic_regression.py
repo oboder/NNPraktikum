@@ -8,6 +8,8 @@ import numpy as np
 from util.activation_functions import Activation
 from model.classifier import Classifier
 
+import matplotlib.pyplot as plt
+
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
                     level=logging.DEBUG,
                     stream=sys.stdout)
@@ -55,9 +57,35 @@ class LogisticRegression(Classifier):
         verbose : boolean
             Print logging messages with validation accuracy if verbose is True.
         """
+        error_curve = []
+        for epoch in range(self.epochs):
+            error_sum = 0
+            grad = 0
+            for input, label in zip(self.trainingSet.input,
+                                    self.trainingSet.label):
+                output = self.fire(input)
+                error = label - output
+                grad += error*input
 
-        pass
-        
+                pred = self.classify(input)
+                error = label - pred
+                error_sum += error
+
+            self.updateWeights(grad)
+
+            error_curve.append(abs(error_sum))
+
+            if verbose:
+                print("Epoch: {:02d}, Error: {}".format(epoch+1, abs(error_sum)))
+
+            if error_sum == 0:
+                break
+
+        plt.plot(error_curve)
+        plt.xlabel("epoch")
+        plt.ylabel("error")
+        plt.show()
+
     def classify(self, testInstance):
         """Classify a single instance.
 
@@ -70,7 +98,7 @@ class LogisticRegression(Classifier):
         bool :
             True if the testInstance is recognized as a 7, False otherwise.
         """
-        pass
+        return self.fire(testInstance) >= 0.5
 
     def evaluate(self, test=None):
         """Evaluate a whole dataset.
@@ -92,7 +120,7 @@ class LogisticRegression(Classifier):
         return list(map(self.classify, test))
 
     def updateWeights(self, grad):
-        pass
+        self.weight += self.learningRate*grad
 
     def fire(self, input):
         # Look at how we change the activation function here!!!!
